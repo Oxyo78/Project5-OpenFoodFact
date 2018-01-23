@@ -7,21 +7,8 @@
 
 import pymysql.cursors
 
-# Database SQL 
-db_create = ['CREATE SCHEMA IF NOT EXISTS `test` DEFAULT CHARACTER SET utf8;',
-             'USE `test`;',
-             '''CREATE TABLE IF NOT EXISTS `test`.`BD_OFF` (
-                 `OFF_id` INT NOT NULL AUTO_INCREMENT,
-                 `OFF_name` VARCHAR(45) NOT NULL,
-                 `OFF_url` VARCHAR(150) NOT NULL,
-                 `OFF_product` INT NOT NULL,
-                 PRIMARY KEY(`OFF_id`, `OFF_product`),
-                UNIQUE INDEX `OFF_product_UNIQUE` (`OFF_product` ASC))
-             ENGINE = InnoDB;''']
-
-
 class SqlRequest:
-    '''Execute some request to the SQL datbase.
+    '''Communication with the SQL datbase.
        Create the class with database name, host address of the server,
        user name and password access'''
 
@@ -41,9 +28,14 @@ class SqlRequest:
                                            user=self.user_name, password=self.password,
                                            database=self.db_name, charset='utf8')
             cursor = self.db_name.cursor()
-            for line in db_create:
-                cursor.execute(line)
-                self.db_name.commit()
+            with open("database.txt", "r") as file:
+                for line in file:
+                    command = line.rstrip(";")
+                    cursor.execute(command)
+                    self.db_name.commit()
+
+        except FileNotFoundError:
+            print("Loading error of the file")
 
         finally:
             self.db_name.close()
@@ -57,9 +49,9 @@ class SqlRequest:
                                            user=self.user_name, password=self.password,
                                            database=self.db_name, charset='utf8')
             cursor = self.db_name.cursor()
-            cursor.execute("DROP DATABASE test;")
+            cursor.execute("DROP DATABASE IF EXISTS DBOpenFoodFacts;")
             self.db_name.commit()
-        
+
         finally:
             self.db_name.close()
             print("Base de donnees supprimer")
@@ -84,7 +76,7 @@ class SqlRequest:
             print('Requete SQL exécuter')
 
 
-if __name__ == '__main__':  
+if __name__ == '__main__':
     db_insert = "INSERT INTO bd_off VALUES (NULL, 'Yohan2', 'url.com', '466');"
 
     newdb = SqlRequest('', 'localhost', 'root', '')
