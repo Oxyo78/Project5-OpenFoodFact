@@ -50,10 +50,10 @@ class SqlRequest:
                     continue
                 if cat_name[2:3] == ":":
                     continue
-                cat_to_add = (cat_name, categorie['url'])
+                data = (cat_name, categorie['url'])
 
                 # Insert into the categories table
-                cursor.execute("INSERT INTO categories (cat_name, cat_url) VALUES (%s, %s)", cat_to_add)
+                cursor.execute("INSERT INTO categories (cat_name, cat_url) VALUES (%s, %s)", data)
                 self.db_name.commit()
 
             # Get the total number of the categories table and print
@@ -96,8 +96,8 @@ class SqlRequest:
             cursor.execute(request_db)
             self.db_name.commit()
             self.sql_message = cursor.fetchone()
-            return self.sql_message
             print("Requete SQL exécuter")
+            return self.sql_message
 
         finally:
             self.db_name.close()
