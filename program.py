@@ -1,5 +1,6 @@
 ''' Project 5 - OpenFoodFacts
     Author : Yohan Vienne
+    V 0.3
 
     This application get the select product in the Json API from OpenFoodFacts.com to show in a window app.
     
@@ -24,7 +25,7 @@ def clear_prompt():
 
 def create_user(db_state):
     """ Create a user account """
-    if db_state is 1:
+    if db_state is True:
         choice = 0
         while choice is 0:
             choice = input("\nVoulez vous créer un utilisateur ? O/n ")
@@ -34,29 +35,131 @@ def create_user(db_state):
             elif choice.upper() == "O":
                 user_name = input("Nom d'utilisateur: ")
                 newdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
-                user = newdb.request_db("INSERT INTO user (user_name) VALUES ('%s')" % user_name)
-                if user is None:
+                user = newdb.request_db("INSERT INTO user (user_name) VALUES ('%s')" % user_name, True)
+                if not user:
                     print("Nom d'utilisateur créer, retour au menu...")
                 else:
                     print("Utilisateur déjà enregistré, retour au menu...")
-                time.sleep(3)
+                time.sleep(2)
                 menu()
                 break
             else:
                 choice = 0
     else:
         print("\nVeuillez créer la base de données, retour au menu...")
-        time.sleep(3)
+        time.sleep(2)
         menu()  
 
-def access_sav():
-    pass
+def access_sav(db_state, user_count):
+    """Show the saved product in saved table """
+    if db_state is True:
+        if user_count is not 0:
+            choice = 0
+            while choice is 0:
+                newdb = db.SqlRequest(
+                    'dbopenfoodfacts', 'localhost', 'root', '')
+                user_list = newdb.request_db("SELECT * FROM user ORDER BY user_id", True)
+                choice = input("\nVoulez vous afficher les produits sauvegardés ? O/n ")
+                if choice.upper() == "N":
+                    menu()
+                    break
+                elif choice.upper() == "O":
+                    user_choice = 0
+                    user_id = []
+                    while user_choice is 0:
+                        print("\nVoici le(s) utilisateur(s) enregistré\n")
+                        for num, user in user_list:
+                            print("{} - {}".format(num, user))
+                            user_id.append(num)
+                        user_choice = input("\nSélectionné l'utilisateur à afficher: ")
+                        if user_choice.isdigit():
+                            if int(user_choice) in user_id:
+                                newdb = db.SqlRequest(
+                                    'dbopenfoodfacts', 'localhost', 'root', '')
+                                user_sav = newdb.request_db("""SELECT categories.cat_name, saved.sav_name, saved.sav_shop, saved.sav_url, saved.sav_nutriscore
+                                                        FROM categories INNER JOIN saved
+                                                        ON saved.sav_cat_id=categories.cat_id
+                                                        WHERE saved.sav_user_id = {}""".format(user_choice), True)
+                                # If user doesn't have saved product
+                                if not user_sav:
+                                    print("Cet utilisateur n'a aucun produit sauvegardé, retour au menu...")
+                                    time.sleep(2)
+                                    menu()
+                                # Print the result of the user saved
+                                product_count = 1
+                                for item in user_sav:
+                                    print("\n*****************************************")
+                                    print("Produit {}:".format(product_count))
+                                    print("Le produit {} appartient à la catégorie {}.".format(
+                                        item[1], item[0]))
+                                    if item[2] == "Inconnu":
+                                        print("Il n'y a pas de magasin connu pour ce produit")
+                                    else:
+                                        print("On peut trouver ce produit chez {}".format(item[2]))
+                                    print("Voici le lien URL du produit: {}".format(item[3]))
+                                    print("*****************************************")
+                                    product_count += 1
+                                show_substitute = 0
+                                while show_substitute is 0:
+                                    show_substitute = input("Voulez vous afficher le substitut d'un produit ? O/n ")
+                                    if show_substitute.upper() == "O":
+                                        product = input("Veuillez entrer le numéro du produit à substituer: ")
+                                        if int(product) >= 1 and int(product) <= product_count:
+                                            print(
+                                                "Chargement de la liste des produits correspondant...")
+                                            newdb = db.SqlRequest(
+                                                'dbopenfoodfacts', 'localhost', 'root', '')
+                                            newdb.request_db("TRUNCATE product")
+                                            newdb = db.SqlRequest(
+                                                'dbopenfoodfacts', 'localhost', 'root', '')
+                                            newdb.product_db(user_sav[int(product)-1][0])
+                                            newdb = db.SqlRequest(
+                                                'dbopenfoodfacts', 'localhost', 'root', '')
+                                            nutriscore_list = newdb.request_db(
+                                                """SELECT product.pro_name, product.pro_nutriscore 
+                                                FROM product 
+                                                WHERE product.pro_nutriscore > {} """.format(user_sav[int(product)-1][4]), True)
+                                            print("\n*****************************************\n")
+                                            for name, nutriscore in nutriscore_list:
+                                                print("Le produit {} a un meilleur score nutritionnel avec un score de {}.".format(name, nutriscore))
+                                            print("Appuyez sur une touche pour revenir au menu...")
+                                            break_time = os.popen("pause")
+                                            break_time.read()
+                                            menu()
+                                        else: 
+                                            print("Choix incorrect")
+                                            show_substitute = 0
+                                    elif show_substitute.upper() == "N":
+                                        menu()
+                                        break
+                                    else:
+                                        print("\nChoix incorrect, veuillez entrer O(Oui) ou N(Non) ")
+                                        show_substitute = 0
+                            else:
+                                print("\nChoix incorrect ")
+                                choice = 0
+                        else:
+                            print("\nChoix incorrect, veuillez entrer un chiffre correspondant à la liste\n")
+                            time.sleep(2)
+                            user_choice = 0
+                else:
+                    choice = 0
+        else:
+            print("Il n'y a aucun utilisateur enregistré, retour au menu...")
+            time.sleep(2)
+            menu()
+    else:
+        print("Il n'y a pas de base de données créer, retour au menu...")
+        time.sleep(2)
+        menu()
 
-def search_product(db_state, categories_count):
+def search_product(db_state, user_count):
     """ Search a product in categories list """
-    if db_state is 1:
+    if db_state is True:
         choice = 0
         while choice is 0:
+            if user_count is 0:
+                print("\nAttention ! Il n'y a pas de compte utilisateur créer pour sauvegarder")
             choice = input("\nVoulez vous rechercher un produit ? O/n ")
             if choice.upper() == "N":
                 menu()
@@ -64,48 +167,177 @@ def search_product(db_state, categories_count):
             elif choice.upper() == "O":
                 search_loop = 0
                 while search_loop is 0:
-                    categorie = input(
-                        "\nEntrez le début du nom de la catégorie: ")
-                    newdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
-                    results = newdb.search_db(str(categorie))
-                    for number,item in enumerate(results):
+                    categorie = input("\nEntrez le début du nom de la catégorie: ")
+                    print("")
+                    newdb = db.SqlRequest(
+                        'dbopenfoodfacts', 'localhost', 'root', '')
+                    results = newdb.cat_search_db(str(categorie))
+                    if len(results) == 0 :
+                            print("Aucun résultat")
+                            continue
+                    for number, item in enumerate(results):
                         print("{} - {}".format(number, item))
-                    cat_choice = input("\nEntrez le numéro correspondant à votre recherche, tapez Q pour quitter ou n'import quel lettre pour relancer une recherche: ")
-                    if cat_choice.upper() == "Q":
+                    print("\nEntrez le numéro correspondant à votre recherche,")
+                    cat_choice = input("Tapez Q pour quitter ou n'importe quel lettre pour relancer une recherche: ")
+                    if cat_choice.isdigit():
+                        if int(cat_choice) >= 0 and int(cat_choice) < 10:
+                            newdb = db.SqlRequest(
+                                'dbopenfoodfacts', 'localhost', 'root', '')
+                            newdb.request_db("TRUNCATE product")
+                            print("Chargement des résultats...")
+                            newdb = db.SqlRequest(
+                                'dbopenfoodfacts', 'localhost', 'root', '')
+                            newdb.product_db(results[int(cat_choice)])
+                        else:
+                            print("\nChoix du chiffre incorrect, retour à la recherche...\n")
+                            time.sleep(2)
+                            continue
+                    else:
+                        if cat_choice.upper() == "Q":
+                            print("Retour au menu...")
+                            time.sleep(3)
+                            menu()
+                            break
+                        else:
+                            print("\nRetour à la recherche...\n")
+                            newdb = db.SqlRequest(
+                                'dbopenfoodfacts', 'localhost', 'root', '')
+                            newdb.request_db("TRUNCATE product")
+                            time.sleep(2)
+                            continue
+                    newdb = db.SqlRequest(
+                        'dbopenfoodfacts', 'localhost', 'root', '')
+                    product_list = newdb.product_show_db()
+                    if not product_list:
+                        print("Aucun produit trouver dans la categorie, retour au menu...")
+                        time.sleep(2)
+                        menu()
+                    print("\nVoici une selection de produit dans la catégorie {} :".format(results[int(cat_choice)]))
+                    for pro_id, pro_name in product_list:
+                        print(str(pro_id) + " - " + pro_name)
+                    product_choice = input("\nQuel produit voulez vous consulter ? (Q pour revenir au menu) ")
+                    if product_choice.isdigit():
+                        if int(product_choice) >=0 and int(product_choice) <= len(product_list):
+                            # Request the product table for the product description by join the categories table
+                            newdb = db.SqlRequest(
+                                'dbopenfoodfacts', 'localhost', 'root', '')
+                            product_sql = newdb.request_db("""SELECT 
+                                categories.cat_name, product.pro_name, product.pro_shop, 
+                                product.pro_url, product.pro_nutriscore 
+                                FROM categories INNER JOIN product 
+                                ON categories.cat_id = product.pro_cat_id 
+                                WHERE product.pro_id = '{}'""".format(product_choice), True)
+                            print(product_sql)
+                            product = product_sql[0]
+                            # Request the product table for better nutrition score
+                            newdb = db.SqlRequest(
+                                'dbopenfoodfacts', 'localhost', 'root', '')
+                            pro_better_score = newdb.request_db(
+                                """SELECT `pro_name`, `pro_nutriscore` FROM `product` 
+                                WHERE product.pro_nutriscore > {}""".format(product[4]), True)
+                            # Print the result of the search product
+                            print("\n*****************************************")
+                            print("\nLe produit {} appartient à la catégorie {}.".format(product[1], product[0]))
+                            if product[2] == "Inconnu":
+                                print("Il possède un score nutritionnel de {}, il n'y a aucun magasin connu pour l'acheter.".format(product[4]))
+                            else:
+                                print("Il possède un score nutritionnel de {}, vous pouvez le trouver chez {}.".format(product[4], product[2]))
+                            print("Voici le lien URL du produit : {}".format(product[3]))
+                            print("\n*****************************************")
+                            if  not pro_better_score :
+                                print("\nIl n'y a aucun produit avec un meilleur score nutritionnel dans cette catégorie")
+                            else:
+                                for product, score in pro_better_score:
+                                    print("Le produit {} a un meilleur score nutritionnel avec un score de {}.".format(product, score))
+                                print("")
+                            # Save the product
+                            if user_count == 0:
+                                print("Impossible de sauvegarder le produit, il n'y a pas de compte utilisateur")
+                                print("Appuyez sur une touche pour revenir au menu...")
+                                break_time = os.popen("pause")
+                                break_time.read()
+                                menu()
+                                break
+                            else:
+                                save_choice = 0
+                                while save_choice is 0:
+                                    save_choice = input("Voulez vous sauvegarder le produit ? O/n ")
+                                    if save_choice.upper() == "O":
+                                        # Get the user
+                                        newdb = db.SqlRequest(
+                                            'dbopenfoodfacts', 'localhost', 'root', '')
+                                        user = newdb.request_db("SELECT * FROM user ORDER BY user_id", True)
+                                        for id, user_name in user:
+                                            print("{} - {}".format(id, user_name))
+                                        user_choice = 0
+                                        while user_choice is 0:
+                                            user_choice = input("Quelle utilisateur voulez-vous utiliser ? ")
+                                            if user_choice.isdigit() >= 1 and user_choice.isdigit() <= len(user):
+                                                user_choice = int(user_choice)
+                                                # Insertion of product in saved table
+                                                newdb = db.SqlRequest(
+                                                    'dbopenfoodfacts', 'localhost', 'root', '')
+                                                newdb.request_db("""INSERT INTO saved (sav_user_id, sav_name, sav_shop, sav_url, sav_cat_id, sav_nutriscore) 
+                                                                    SELECT user.User_id, product.pro_name, product.pro_shop, product.pro_url, product.pro_cat_id, product.pro_nutriscore
+                                                                    FROM user, product 
+                                                                    WHERE product.pro_id = {} AND user.User_id = {}""".format(product_choice, user_choice))
+                                                print("Produit sauvegardé, retour au menu...")
+                                                time.sleep(2)
+                                                menu()
+                                                break
+                                            elif user_choice.upper() == "Q":
+                                                print("Retour au menu...")
+                                                time.sleep(2)
+                                                menu()
+                                                break
+                                            else:
+                                                print("Choix incorrect, veuillez recommencer.")
+
+                                    elif save_choice.upper() == "N":
+                                        print("\nRetour au menu...")
+                                        time.sleep(2)
+                                        menu()
+                                        break
+                                    else:
+                                        print("\nChoix incorrect")
+                                        save_choice = 0
+                    elif product_choice.upper() == "Q":
                         print("Retour au menu...")
-                        time.sleep(3)
+                        time.sleep(2)
                         menu()
                         break
-                    elif int(cat_choice) >= 0 and int(cat_choice) <= len(results):
-                        newdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
-                        # Fonction non operationnelle, conception de la fonction database.product_db
-                        # pour récupérer les produits
-
                     else:
+                        print("Choix incorrect, retour à la recherche...")
+                        time.sleep(2)
                         continue
             else:
                 choice = 0
     else:
         print("\nVeuillez créer la base de données, retour au menu...")
-        time.sleep(3)
+        time.sleep(2)
         menu()
 
-def destroy_database():
+def destroy_database(db_state):
     """ Option 4 - Delete the database """
-    newdb = db.SqlRequest('', 'localhost', 'root', '')
-    newdb.delete_db()
-    print("\nBase de données effacée, retour au menu...")
-    time.sleep(3)
-    menu()
+    if db_state is True:
+        newdb = db.SqlRequest('', 'localhost', 'root', '')
+        newdb.delete_db()
+        print("\nBase de données effacée, retour au menu...")
+        time.sleep(2)
+        menu()
+    else:
+        print("\nAucune base de données, retour au menu...")
+        time.sleep(2)
+        menu()
 
 def create_database(db_state):
     """ Option 5 - Create the database and download the categories list """
     newdb = db.SqlRequest('', 'localhost', 'root', '')
-    if db_state == 0:
+    if db_state is False:
         newdb.create_db()
         #print("")
         print("\nRetour au menu...")
-        time.sleep(3)
+        time.sleep(2)
         menu()
     else:
         #print("")
@@ -116,6 +348,8 @@ def create_database(db_state):
 def menu():
     """ Main screen of application """
     choice = 0
+    user_count = 0
+    categories_count = 0
     # Check if the database exist
     newdb = db.SqlRequest('', 'localhost', 'root', '')
     db_state = newdb.check_db()
@@ -124,16 +358,13 @@ def menu():
     print("\nBienvenue sur la base de données OpenFoodFacts FR.")
     print("")
     
-    if db_state is 1:
+    if db_state is True:
         # Get the user count
         newdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
         user_count = newdb.request_db("SELECT COUNT(*) FROM user")
-        user_count = user_count[0]
         # Get the categories count
         newdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
         categories_count = newdb.request_db("SELECT COUNT(*) FROM categories")
-        categories_count = categories_count[0]
-
         if user_count is 0:
             print("Veuillez créer un compte utilisateur pour pouvoir sauvegarder un produit")
         else:
@@ -150,31 +381,29 @@ def menu():
     print("4-Effacer la base de données actuelle")
     print("5-Créer la base de données locale")
     while choice == 0:
-        choice = input("Votre choix (Tapez Q pour quitter): ")
+        choice = input("\nVotre choix (Tapez Q pour quitter): ")
         # Stop the program
         if choice.upper() == "Q":
             break
         # Check if the input is a digit and between 0 and 6
         elif choice.isdigit() == False or int(choice) >= 6 or int(choice) == 0:
             print("\nVous devez entrer un nombre entre 1 et 5\n")
-            choice = 0
+            time.sleep(2)
+            menu()
+            break
         # Run the input choice
         elif int(choice) == 1:
             create_user(db_state)
         elif int(choice) == 2:
-            pass
+            access_sav(db_state, user_count)
         elif int(choice) == 3:
-            search_product(db_state, categories_count)
+            search_product(db_state, user_count)
         elif int(choice) == 4:
-            destroy_database()
+            destroy_database(db_state)
         elif int(choice) == 5:
             create_database(db_state)
-            
-
-
-"""x = urllib.request.urlopen('https://fr.openfoodfacts.org/categories.json')
-print(x.read())"""
-
 
 if __name__ == '__main__':
+    #access_sav(True,1)
+    #search_product(1, 4)
     menu()
