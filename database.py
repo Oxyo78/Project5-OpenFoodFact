@@ -21,7 +21,7 @@ class SqlRequest:
         self.user_name = user_name
         self.password = password
 
-    def create_db(self):
+    def create_db(self, filename):
         ''' Function to create and download the database'''
 
         try:
@@ -29,13 +29,22 @@ class SqlRequest:
                                            user=self.user_name, password=self.password,
                                            database=self.db_name, charset='utf8')
             cursor = self.db_name.cursor()
-            with open("database.txt", "r") as file:
-                for line in file:
-                    command = line.rstrip(";")
-                    cursor.execute(command)
-                    self.db_name.commit()
+            # Open SQL file
+            with open(filename, 'r') as fileToRead:
+                sqlFile = fileToRead.read()
+
+            # split all command by ';'
+            sqlCommand = sqlFile.split(';')
+
+            # Execute each command in sqlcommand
+            for command in sqlCommand:
+                try:
+                    if command.strip() != '':
+                        cursor.execute(command)
+                except pymysql.err.InternalError as msg:
+                        print("Erreur: {}".format(msg))
             print("\nBase de données créer")
-            print("Chargement de la base de données...")
+            print("\nChargement de la base de données...")
 
             # Get the french categorie database from OpenFoodFacts and add to the local database
             categories_url = urllib.request.urlopen('https://fr.openfoodfacts.org/categories.json')
@@ -217,7 +226,7 @@ if __name__ == '__main__':
     # Test
     newdb = SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
     #resultat = newdb.request_db("SELECT pro_name FROM product", True)
-    resultat = newdb.check_db()
+    resultat = newdb.create_db('database.sql')
     #resultat = newdb.product_db("Boissons")
     #resultat = resultat[0]
     print(resultat)

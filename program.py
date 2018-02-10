@@ -149,7 +149,7 @@ def access_sav(db_state, user_count):
             time.sleep(2)
             menu()
     else:
-        print("Il n'y a pas de base de données créer, retour au menu...")
+        print("\nIl n'y a pas de base de données créer, retour au menu...")
         time.sleep(2)
         menu()
 
@@ -334,7 +334,7 @@ def create_database(db_state):
     """ Option 5 - Create the database and download the categories list """
     newdb = db.SqlRequest('', 'localhost', 'root', '')
     if db_state is False:
-        newdb.create_db()
+        newdb.create_db('database.sql')
         #print("")
         print("\nRetour au menu...")
         time.sleep(2)
