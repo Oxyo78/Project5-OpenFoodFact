@@ -4,4 +4,4 @@ Scripts
 tcl
 pip-selfcheck.json
 test.py
-.vscode
+*.vscode
