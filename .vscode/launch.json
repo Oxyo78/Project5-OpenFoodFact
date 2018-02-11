@@ -9,11 +9,11 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
+            "pythonPath": "C:/Projet/Project_5/Scripts/python.exe",
             "program": "${file}",
             "cwd": "${workspaceFolder}",
             "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "envFile": "C:/Projet/Project_5",
             "debugOptions": [
                 "RedirectOutput"
             ]
@@ -33,12 +33,12 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
+            "pythonPath": "C:/Projet/Project_5/Scripts/python.exe",
             "program": "${file}",
             "cwd": "",
-            "console": "integratedTerminal",
+            "console": "externalTerminal",
             "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "envFile": "C:/Projet/Project_5",
             "debugOptions": []
         },
         {
@@ -46,12 +46,12 @@
             "type": "python",
             "request": "launch",
             "stopOnEntry": true,
-            "pythonPath": "${config:python.pythonPath}",
+            "pythonPath": "C:/Projet/Project_5/Scripts/python.exe",
             "program": "${file}",
             "cwd": "",
             "console": "externalTerminal",
             "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "envFile": "C:/Projet/Project_5",
             "debugOptions": []
         },
         {
@@ -141,7 +141,7 @@
             "module": "module.name",
             "cwd": "${workspaceFolder}",
             "env": {},
-            "envFile": "${workspaceFolder}/.env",
+            "envFile": "C:/Projet/Project_5",
             "debugOptions": [
                 "RedirectOutput"
             ]

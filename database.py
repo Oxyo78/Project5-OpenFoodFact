@@ -25,10 +25,10 @@ class SqlRequest:
         ''' Function to create and download the database'''
 
         try:
-            self.db_name = pymysql.connect(host=self.host_address,
-                                           user=self.user_name, password=self.password,
-                                           database=self.db_name, charset='utf8')
-            cursor = self.db_name.cursor()
+            self.db_connect = pymysql.connect(host=self.host_address,
+                                              user=self.user_name, password=self.password,
+                                              database=self.db_name, charset='utf8')
+            cursor = self.db_connect.cursor()
             # Open SQL file
             with open(filename, 'r') as fileToRead:
                 sqlFile = fileToRead.read()
@@ -49,7 +49,7 @@ class SqlRequest:
             # Get the french categorie database from OpenFoodFacts and add to the local database
             categories_url = urllib.request.urlopen('https://fr.openfoodfacts.org/categories.json')
             data = categories_url.read()
-            json_output = json.loads(data.decode("utf_8"))
+            json_output = json.loads(data.decode("UTF-8"))
 
             # Change the type to str format, control len size and take of the langage prefixe(Cleaning file)
             for categorie in json_output["tags"]:
@@ -59,41 +59,34 @@ class SqlRequest:
                     continue
                 if cat_name[2:3] == ":":
                     continue
-                data = (cat_name, categorie['url'])
+                #data = (cat_name, categorie['url'])
 
                 # Insert into the categories table
-                cursor.execute("INSERT IGNORE INTO categories (cat_name, cat_url) VALUES (%s, %s)", data)
-                self.db_name.commit()
+                cursor.execute("INSERT IGNORE INTO categories (cat_name, cat_url) VALUES ('{}', '{}')".format(
+                    cat_name, categorie['url']))
+                self.db_connect.commit()
 
             # Get the total number of the categories table and print
             cursor.execute("SELECT COUNT(*) FROM categories")
-            self.db_name.commit()
             self.sql_message = cursor.fetchone()
             print("Base de données chargé avec %s produits" % (self.sql_message))
 
         except Exception as e:
             print("Erreur : %s" % e)
-        
-        finally:
-            self.db_name.close()
 
     def delete_db(self):
         '''Delete the database'''
 
         try:
-            self.db_name = pymysql.connect(host=self.host_address,
-                                           user=self.user_name, password=self.password,
-                                           database=self.db_name, charset='utf8')
-            cursor = self.db_name.cursor()
+            self.db_connect = pymysql.connect(host=self.host_address,
+                                              user=self.user_name, password=self.password,
+                                              database=self.db_name, charset='utf8')
+            cursor = self.db_connect.cursor()
             cursor.execute("DROP DATABASE IF EXISTS DBOpenFoodFacts;")
-            self.db_name.commit()
-            print("Base de données supprimer")
+            self.db_connect.commit()
 
         except Exception as e:
             print("Erreur : %s" % e)
-        
-        finally:
-            self.db_name.close()
 
     def request_db(self, request_db, multi_result = False):
         '''Request to the database, this function return the answer if not null
@@ -102,12 +95,12 @@ class SqlRequest:
         self.sql_message = ''
         try:
             # Connect to the database
-            self.db_name = pymysql.connect(host=self.host_address,
-                                           user=self.user_name, password=self.password,
-                                           database=self.db_name, charset='utf8')
-            cursor = self.db_name.cursor()
+            self.db_connect = pymysql.connect(host=self.host_address,
+                                              user=self.user_name, password=self.password,
+                                              database=self.db_name, charset='utf8')
+            cursor = self.db_connect.cursor()
             cursor.execute(request_db)
-            self.db_name.commit()
+            self.db_connect.commit()
             if multi_result is True:
                 self.sql_message = [item for item in cursor.fetchall()]
             else:
@@ -118,17 +111,14 @@ class SqlRequest:
         except Exception as e:
             return e
 
-        finally:
-            self.db_name.close()
-
     def check_db(self):
         """ Check if the database exist """
         state = False
         # Connect to the database
-        self.db_name = pymysql.connect(host=self.host_address,
-                                       user=self.user_name, password=self.password,
-                                       database=self.db_name, charset='utf8')
-        cursor = self.db_name.cursor()
+        self.db_connect= pymysql.connect(host=self.host_address,
+                                         user=self.user_name, password=self.password,
+                                         database=self.db_name, charset='utf8')
+        cursor = self.db_connect.cursor()
         database = ("SHOW DATABASES")
         cursor.execute(database)
         for database in cursor:
@@ -138,42 +128,39 @@ class SqlRequest:
                 break
             else:
                 state = False
-        self.db_name.close()
         return state
 
     def cat_search_db(self, name_search):
         """ Return a search of 10 items """
-        self.db_name = pymysql.connect(host=self.host_address,
-                                    user=self.user_name, password=self.password,
-                                    database=self.db_name, charset='utf8')
-        cursor = self.db_name.cursor()
+        self.db_connect = pymysql.connect(host=self.host_address,
+                                          user=self.user_name, password=self.password,
+                                          database=self.db_name, charset='utf8')
+        cursor = self.db_connect.cursor()
         result = ("SELECT cat_name FROM categories WHERE cat_name LIKE '{}%' LIMIT 10".format(name_search))
         cursor.execute(result)
         results = [item[0] for item in cursor.fetchall()]
-        self.db_name.close()
         return results
 
     def product_show_db(self):
         """ Show the product table """
         results = list()
-        self.db_name = pymysql.connect(host=self.host_address,
-                                       user=self.user_name, password=self.password,
-                                       database=self.db_name, charset='utf8')
-        cursor = self.db_name.cursor()
+        self.db_connect = pymysql.connect(host=self.host_address,
+                                          user=self.user_name, password=self.password,
+                                          database=self.db_name, charset='utf8')
+        cursor = self.db_connect.cursor()
         request = ("""SELECT pro_id, pro_name FROM product ORDER BY pro_id""")
         cursor.execute(request)
         results = [item for item in cursor.fetchall()]
-        self.db_name.close()
         return results
     
     def product_db(self, categorie_name):
         """ Get the product list from the categorie """
         try:
-            self.db_name = pymysql.connect(host=self.host_address,
-                                           user=self.user_name, password=self.password,
-                                           database=self.db_name, charset='utf8')
+            self.db_connect = pymysql.connect(host=self.host_address,
+                                              user=self.user_name, password=self.password,
+                                              database=self.db_name, charset='utf8')
 
-            cursor = self.db_name.cursor()
+            cursor = self.db_connect.cursor()
             # Get the product list from the selected categorie
             cursor.execute("SELECT cat_url, cat_id FROM categories WHERE cat_name LIKE '{}'".format(categorie_name))
             result = cursor.fetchone()
@@ -214,13 +201,10 @@ class SqlRequest:
                     VALUES ('%s', '%s', '%s', %d, %d) 
                     ON DUPLICATE KEY UPDATE pro_name = '%s'""" % 
                     (product_name, product_shop, product_url, nutrition_score, cat_product_list, product_name))
-                self.db_name.commit()
+                self.db_connect.commit()
                 
         except Exception as e:
             print("Erreur : %s" % e)
-
-        finally:
-            self.db_name.close()
 
 if __name__ == '__main__':
     # Test
