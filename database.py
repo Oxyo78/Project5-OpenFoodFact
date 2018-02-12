@@ -59,7 +59,9 @@ class SqlRequest:
                     continue
                 if cat_name[2:3] == ":":
                     continue
-                #data = (cat_name, categorie['url'])
+                if len(cat_name) == 0:
+                    continue
+                data = (cat_name, categorie['url'])
 
                 # Insert into the categories table
                 cursor.execute("INSERT IGNORE INTO categories (cat_name, cat_url) VALUES ('{}', '{}')".format(
@@ -136,19 +138,19 @@ class SqlRequest:
                                           user=self.user_name, password=self.password,
                                           database=self.db_name, charset='utf8')
         cursor = self.db_connect.cursor()
-        result = ("SELECT cat_name FROM categories WHERE cat_name LIKE '{}%' LIMIT 10".format(name_search))
+        result = ("SELECT cat_name, cat_id FROM categories WHERE cat_name LIKE '{}%' LIMIT 10".format(name_search))
         cursor.execute(result)
-        results = [item[0] for item in cursor.fetchall()]
+        results = [item for item in cursor.fetchall()]
         return results
 
-    def product_show_db(self):
+    def product_show_db(self, cat_id):
         """ Show the product table """
         results = list()
         self.db_connect = pymysql.connect(host=self.host_address,
                                           user=self.user_name, password=self.password,
                                           database=self.db_name, charset='utf8')
         cursor = self.db_connect.cursor()
-        request = ("""SELECT pro_id, pro_name FROM product ORDER BY pro_id""")
+        request = ("""SELECT pro_id, pro_name FROM product WHERE pro_cat_id = {} ORDER BY pro_id""".format(cat_id))
         cursor.execute(request)
         results = [item for item in cursor.fetchall()]
         return results
@@ -159,9 +161,9 @@ class SqlRequest:
             self.db_connect = pymysql.connect(host=self.host_address,
                                               user=self.user_name, password=self.password,
                                               database=self.db_name, charset='utf8')
-
-            cursor = self.db_connect.cursor()
+            
             # Get the product list from the selected categorie
+            cursor = self.db_connect.cursor()
             cursor.execute("SELECT cat_url, cat_id FROM categories WHERE cat_name LIKE '{}'".format(categorie_name))
             result = cursor.fetchone()
             url_product_list, cat_product_list = result
@@ -185,7 +187,8 @@ class SqlRequest:
                     product_shop = ("Inconnu")
                 product_url = product['url']
                 nutr_sco = product['nutrition_score_debug']
-                # Try id the nutrition score number if decade number
+
+                # Try the id_nutrition score number if is a dozen or unit number
                 try:
                     int(nutr_sco[len(nutr_sco)-2])
                     nutrition_score = nutr_sco[len(nutr_sco)-2]+nutr_sco[len(nutr_sco)-1]
@@ -195,6 +198,7 @@ class SqlRequest:
                     nutrition_score = int(nutrition_score)
                 else:
                     nutrition_score = 0
+
                 # Insert into the categories table
                 cursor.execute("""INSERT INTO product 
                     (pro_name, pro_shop, pro_url, pro_nutriscore, pro_cat_id) 
@@ -210,9 +214,9 @@ if __name__ == '__main__':
     # Test
     newdb = SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
     #resultat = newdb.request_db("SELECT pro_name FROM product", True)
-    resultat = newdb.create_db('database.sql')
+    resultat = newdb.cat_search_db('Boeuf')
     #resultat = newdb.product_db("Boissons")
     #resultat = resultat[0]
-    print(resultat)
+    print(resultat[1][1])
     #print(resultat[0][0])
     #print(type(resultat))
