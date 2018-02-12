@@ -9,6 +9,7 @@ This application use the french **OpenFood Facts** database and will run in fren
 
 **How to use it ?:**
 ----------
+To run this program, launch the script "program.py"
 
 First, when you launch the app, you got 5 reading choices in the terminal:
 
