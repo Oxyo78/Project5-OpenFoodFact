@@ -1,6 +1,6 @@
 ''' Project 5 - OpenFoodFacts
     Author : Yohan Vienne
-    V 0.3
+    V 0.4
 
     This application get the select product in the Json API from OpenFoodFacts.com to show in a window app.
     
@@ -17,9 +17,15 @@ import database as db
 
 program_loop = True
 
+
+# Setup here the user name, password and server address about you local server connection:
+user_server_name = 'root'
+passwd_user_server = ''
+server_address = 'localhost'
+
 # Creation of SQL connector
-newdb = db.SqlRequest('', 'localhost', 'root', '')
-conecdb = db.SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
+newdb = db.SqlRequest('', server_address, user_server_name, passwd_user_server)
+conecdb = db.SqlRequest('dbopenfoodfacts', server_address, user_server_name, passwd_user_server)
 
 def clear_prompt():
     """ Clear the prompt """
@@ -41,14 +47,16 @@ def create_user(db_state):
 
             elif choice.upper() == "O":
                 user_name = input("Nom d'utilisateur: ")
-                # Request to the DB
+                
+                # Insert the user name in the user table
                 user = conecdb.request_db(
                     "INSERT INTO user (user_name) VALUES ('%s')" % user_name, True)
+
                 if not user:
                     print("Nom d'utilisateur créer, retour au menu...")
                 else:
                     print("Utilisateur déjà enregistré, retour au menu...")
-                time.sleep(5)
+                time.sleep(2)
                 break
             else:
                 choice = 0
@@ -124,7 +132,7 @@ def access_sav(db_state, user_count):
                 else:
                     choice = 0
         else:
-            print("Il n'y a aucun utilisateur enregistré, retour au menu...")
+            print("\nIl n'y a aucun utilisateur enregistré, retour au menu...")
             time.sleep(2)
     else:
         print("\nIl n'y a pas de base de données créer, retour au menu...")
@@ -250,7 +258,8 @@ def search_product(db_state, user_count):
                                 save_choice = 0
                                 while save_choice is 0:
                                     save_choice = input("Voulez vous sauvegarder le produit ? O/n ")
-                                    
+                                    print("")
+
                                     # Get the user on the DB
                                     if save_choice.upper() == "O":
                                         user = conecdb.request_db(
@@ -259,13 +268,13 @@ def search_product(db_state, user_count):
                                             print("{} - {}".format(id, user_name))
                                         user_choice = 0
                                         while user_choice is 0:
-                                            user_choice = input("Quelle utilisateur voulez-vous utiliser ? ")
+                                            user_choice = input("\nQuelle utilisateur voulez-vous utiliser ? ")
                                             if user_choice.isdigit() >= 1 and user_choice.isdigit() <= len(user):
                                                 user_choice = int(user_choice)
 
                                                 # Insertion of product in saved table
                                                 substitution = input("Entrer le numéro du substitut à sauvegarder: ")
-                                                if substitution.isdigit() and int(substitution) <= len(pro_better_score):
+                                                if substitution.isdigit() and int(substitution) <= (len(pro_better_score)-1):
                                                     substitution = pro_better_score[int(substitution)][2]
                                                     conecdb.request_db("""INSERT INTO saved (sav_pro_id, sav_user_id) 
                                                                         SELECT product.pro_id, user.User_id
@@ -360,15 +369,18 @@ while program_loop is True:
     print("5-Créer la base de données locale")
     while choice == 0:
         choice = input("\nVotre choix (Tapez Q pour quitter): ")
+
         # Stop the program
         if choice.upper() == "Q":
             program_loop = False
             break
+
         # Check if the input is a digit and between 0 and 6
         elif choice.isdigit() == False or int(choice) >= 6 or int(choice) == 0:
             print("\nVous devez entrer un nombre entre 1 et 5\n")
             time.sleep(2)
             break
+
         # Run the input choice
         elif int(choice) == 1:
             create_user(db_state)

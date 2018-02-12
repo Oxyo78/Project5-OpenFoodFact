@@ -2,7 +2,7 @@
 # coding: utf-8
 
 ''' Database connector
-    Author : Yohan Vienne  V 0.3
+    Author : Yohan Vienne  V 0.4
 '''
 import urllib.request
 import json
@@ -90,9 +90,9 @@ class SqlRequest:
         except Exception as e:
             print("Erreur : %s" % e)
 
-    def request_db(self, request_db, multi_result = False):
+    def request_db(self, request_db, multi_results = False):
         '''Request to the database, this function return the answer if not null
-           Add the SQL command in parameter, use multi_result=True for a list answer 
+           Add the SQL command in parameter, use multi_results=True for a list answer 
            (by default False => single answer)'''
         self.sql_message = ''
         try:
@@ -103,7 +103,7 @@ class SqlRequest:
             cursor = self.db_connect.cursor()
             cursor.execute(request_db)
             self.db_connect.commit()
-            if multi_result is True:
+            if multi_results is True:
                 self.sql_message = [item for item in cursor.fetchall()]
             else:
                 self.sql_message = cursor.fetchone()
@@ -137,6 +137,7 @@ class SqlRequest:
         self.db_connect = pymysql.connect(host=self.host_address,
                                           user=self.user_name, password=self.password,
                                           database=self.db_name, charset='utf8')
+
         cursor = self.db_connect.cursor()
         result = ("SELECT cat_name, cat_id FROM categories WHERE cat_name LIKE '{}%' LIMIT 10".format(name_search))
         cursor.execute(result)
@@ -149,6 +150,7 @@ class SqlRequest:
         self.db_connect = pymysql.connect(host=self.host_address,
                                           user=self.user_name, password=self.password,
                                           database=self.db_name, charset='utf8')
+       
         cursor = self.db_connect.cursor()
         request = ("""SELECT pro_id, pro_name FROM product WHERE pro_cat_id = {} ORDER BY pro_id""".format(cat_id))
         cursor.execute(request)
@@ -213,10 +215,5 @@ class SqlRequest:
 if __name__ == '__main__':
     # Test
     newdb = SqlRequest('dbopenfoodfacts', 'localhost', 'root', '')
-    #resultat = newdb.request_db("SELECT pro_name FROM product", True)
     resultat = newdb.cat_search_db('Boeuf')
-    #resultat = newdb.product_db("Boissons")
-    #resultat = resultat[0]
     print(resultat[1][1])
-    #print(resultat[0][0])
-    #print(type(resultat))
