@@ -10,16 +10,29 @@ This application use the french **OpenFood Facts** database and will run in fren
 **How to use it ?:**
 ----------
 
-First, when you launch the app, you got 2 reading choices in the terminal:
+First, when you launch the app, you got 5 reading choices in the terminal:
 
- - 1 - Quel aliment souhaitez-vous remplacer ? 
- - 2 - Retrouver mes aliments substitués.
+ - 1 - Créer un compte utilisateur
+ - 2 - Accédez à vos produits sauvegardés
+ - 3 - Rechercher un produit dans la listes des catégories
+ - 4 - Effacer la base de données actuelle
+ - 5 - Créer la base de données locale
  
- If you select 1, the app will ask you to select an category in a list of 10 foods. Select the number of food in the category and the app will show  the desciption product, where you can buy it and the url from **OpenFoodFacts.com**.
- 
- The app will ask you if you want to save the food product or make a new search.
+ If you select 1, You can make a new user account.
 
-If you select 2, the app will show you the list of your saved food product, select the number of the product to see the desciption, shop and url.
+ If you select 2, You can access to your saved product.
+
+ If you select 3, the app will ask you to enter the beginning of an category name and will show you a list of 10 foods. Select the number of food in the category and the app will show the description product, where you can buy it, the url from **OpenFoodFacts.com** and some better substitute at your product. At the end, you save the substitute under condition your make a user account.
+
+ If you select 4, You can delete all the database ( user, saved, product and categories), be carreful ! it's not reversible !
+
+ If you select 5, You can build the database and download the french database from **OpenFoodFacts.com**, it may take some time, depend off your speed network connection.
+
+**First use**
+----------
+
+For the first use, you must have your local server online and build the database by select the option 5
+If you want save some substitute, create a account user before the search
 
 **Installation:**
 ----------
@@ -29,20 +42,5 @@ Install packages:
 
 Install [MySQL](https://dev.mysql.com/downloads/installer/) >= 5.5
 
-**Functionality:**
-----------
 
-new_user_database:
-This function create a new folder named "user" for the MySQL database if no exist.
-If you want to delete the database, delete "user" folder the home path of the program.py file
-
-save_user_food:
-This function save a food product from the user search.
-The database will save the name, description, shop and OpenFoodFacts URL.
-
-call_user_food:
-This function will print the list of the food product name in the database and ask the user which one he want to see the description, shop and URL.
-
-food_category_database:
-This function will create a database and get the FR category json file from the OpenFoodFacts.org.
 
