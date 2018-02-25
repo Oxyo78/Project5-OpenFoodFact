@@ -185,7 +185,7 @@ def search_product(db_state, user_count):
                             time.sleep(3)
                             break
                         else:
-                            print("\nEntrer incorrect, retour à la recherche...\n")
+                            print("\nChoix incorrect, retour à la recherche...\n")
                             time.sleep(2)
                             continue
                     
@@ -299,6 +299,10 @@ def search_product(db_state, user_count):
                                     else:
                                         print("\nChoix incorrect")
                                         save_choice = 0
+                        else:
+                            print("Choix incorrect, retour à la recherche...")
+                            time.sleep(2)
+                            continue
                     elif product_choice.upper() == "Q":
                         print("Retour au menu...")
                         time.sleep(2)
